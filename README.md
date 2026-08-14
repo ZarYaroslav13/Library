@@ -68,6 +68,8 @@ DAL includes a **`Database queries`** folder holding the raw SQL scripts for the
 - Schema creation scripts (tables, constraints, indexes).
 - Seed data scripts for local development/testing.
 
+Script/resource paths and other cross-cutting literal values (e.g. embedded resource names, `InitialCatalog`) are centralized per assembly rather than hardcoded at each call site — one `internal static class {Assembly}ConstantsLocator` per assembly (e.g. `DALConstantsLocator` in the DAL), with nested static classes grouping related constants (e.g. `ScriptsFiles`) so a path change happens in one place, not scattered across the codebase. Pattern for a new assembly-scoped constant group: add a nested static class inside that assembly's `{Assembly}ConstantsLocator`, not a new top-level locator or inline literals.
+
 Seeding runs automatically on container startup, gated by the `ENVIRONMENT` value in `.env` (mapped to `ASPNETCORE_ENVIRONMENT`): outside `Production`, schema creation and seed data both run; in `Production`, only schema creation runs and seed data is skipped. {CONFIRM this matches the actual check in your seeding script — e.g. whether it's an exact `!= "Production"` comparison or something else.}
 
 ### Logging
@@ -157,4 +159,6 @@ docker compose up --build
 
 ## Not yet built (deferred, kept compatible with)
 
-Specification Pattern, type-safe predicate/expression query building, `UPDATE`/`DELETE` query builders, client-side validation, reflection-based reader-to-POCO mapping, per-book (`reviews:version:{bookId}`) cache granularity.
+Specification Pattern, `UPDATE`/`DELETE` query builders.
+
+**Partially built, not fully wired:** Keyset (seek) pagination infrastructure (`KeysetRequest`/`KeysetResult<T>`, repository/service-level query support) exists and is used for at least one entity's repository method, but isn't yet exposed through a live view/controller action. Likely future target: selector/autocomplete-style lists, per the original use-case guidance for when keyset is preferred over offset.
